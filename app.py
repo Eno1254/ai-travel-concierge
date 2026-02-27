@@ -8,11 +8,34 @@ from langchain_community.vectorstores import FAISS
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_community.embeddings import HuggingFaceEmbeddings
 
-load_dotenv()
-client = Groq(api_key=os.getenv("GROQ_API_KEY"))
-
+# -----------------------------
+# CONFIG
+# -----------------------------
+st.set_page_config(page_title="AI Travel Concierge (RAG Enabled)")
 st.title("🌍 AI Travel Concierge (RAG Enabled)")
 
+load_dotenv()
+
+groq_api_key = os.getenv("GROQ_API_KEY")
+
+if not groq_api_key:
+    st.error("GROQ_API_KEY not found in environment variables.")
+    st.stop()
+
+client = Groq(api_key=groq_api_key)
+
+# -----------------------------
+# SESSION STATE
+# -----------------------------
+if "vectorstore" not in st.session_state:
+    st.session_state.vectorstore = None
+
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
+# -----------------------------
+# FILE UPLOAD
+# -----------------------------
 uploaded_file = st.file_uploader("Upload a PDF document", type="pdf")
 
 if uploaded_file:
@@ -22,44 +45,72 @@ if uploaded_file:
     loader = PyPDFLoader("temp.pdf")
     documents = loader.load()
 
-    splitter = RecursiveCharacterTextSplitter(
-        chunk_size=500,
-        chunk_overlap=50
+    text_splitter = RecursiveCharacterTextSplitter(
+        chunk_size=1000,
+        chunk_overlap=200
     )
 
-    chunks = splitter.split_documents(documents)
+    texts = text_splitter.split_documents(documents)
 
-    embeddings = HuggingFaceEmbeddings(
-        model_name="sentence-transformers/all-MiniLM-L6-v2"
-    )
+    embeddings = HuggingFaceEmbeddings()
 
-    vectorstore = FAISS.from_documents(chunks, embeddings)
+    st.session_state.vectorstore = FAISS.from_documents(texts, embeddings)
 
-    st.success("Document processed successfully!")
+    st.success("PDF processed successfully!")
 
-    query = st.text_input("Ask a question about the document:")
+# -----------------------------
+# CHAT DISPLAY
+# -----------------------------
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
+
+# -----------------------------
+# CHAT INPUT
+# -----------------------------
+if st.session_state.vectorstore:
+
+    query = st.chat_input("Ask a question about the uploaded PDF")
 
     if query:
-        docs = vectorstore.similarity_search(query, k=3)
+        # Show user message
+        st.session_state.messages.append({"role": "user", "content": query})
+        with st.chat_message("user"):
+            st.markdown(query)
 
+        # Retrieve context
+        docs = st.session_state.vectorstore.similarity_search(query, k=3)
         context = "\n\n".join([doc.page_content for doc in docs])
 
         prompt = f"""
-        Answer the question using ONLY the context below.
+You are an AI assistant.
 
-        Context:
-        {context}
+Use the context below to answer the question.
+If the answer is not in the context, say you don't know.
 
-        Question:
-        {query}
-        """
+Context:
+{context}
 
-        response = client.chat.completions.create(
-            model="llama-3.1-8b-instant",
-            messages=[
-                {"role": "system", "content": "You answer based only on provided context."},
-                {"role": "user", "content": prompt}
-            ]
+Question:
+{query}
+"""
+
+        with st.spinner("Thinking..."):
+            response = client.chat.completions.create(
+                model="llama3-8b-8192",
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.3,
+            )
+
+            answer = response.choices[0].message.content
+
+        # Show assistant message
+        st.session_state.messages.append(
+            {"role": "assistant", "content": answer}
         )
 
-        st.write(response.choices[0].message.content)
+        with st.chat_message("assistant"):
+            st.markdown(answer)
+
+else:
+    st.info("Upload a PDF to start chatting.")
