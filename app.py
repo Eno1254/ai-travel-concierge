@@ -11,7 +11,7 @@ from langchain_community.embeddings import HuggingFaceEmbeddings
 # -----------------------------
 # CONFIG
 # -----------------------------
-st.set_page_config(page_title="AI Travel Concierge (RAG Enabled)")
+st.set_page_config(page_title="AI Travel Concierge")
 st.title("🌍 AI Travel Concierge (RAG Enabled)")
 
 load_dotenv()
