@@ -1,3 +1,5 @@
+from tools.web_search import web_search
+from tools.disease_info import disease_info
 import streamlit as st
 import os
 from dotenv import load_dotenv
