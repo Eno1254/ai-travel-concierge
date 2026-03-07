@@ -1,9 +1,9 @@
 from langchain_community.tools import DuckDuckGoSearchRun
 
-search = DuckDuckGoSearchRun()
-
 def web_search(query):
     try:
-        return search.run(query)
-    except Exception:
-        return "Web search failed."
+        search = DuckDuckGoSearchRun()
+        result = search.run(query)
+        return result
+    except Exception as e:
+        return f"Web search error: {str(e)}"
