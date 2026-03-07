@@ -22,6 +22,32 @@ st.title("🩺 AI Medical Assistant")
 st.warning("⚠ This AI provides educational information only. Always consult a doctor.")
 
 # -----------------------
+# Sidebar
+# -----------------------
+
+st.sidebar.title("🩺 Medical Tools")
+
+st.sidebar.write("Upload a medical report or ask a health question.")
+
+uploaded_file = st.sidebar.file_uploader(
+    "📄 Upload Medical Report (PDF)",
+    type="pdf"
+)
+
+st.sidebar.markdown("### 💡 Example Questions")
+
+st.sidebar.write("""
+• What causes high blood pressure?  
+• What are symptoms of diabetes?  
+• Explain my blood test results  
+• Is high cholesterol dangerous?  
+""")
+
+if st.sidebar.button("🧹 Clear Chat"):
+    st.session_state.messages = []
+    st.rerun()
+
+# -----------------------
 # Session state
 # -----------------------
 
@@ -32,10 +58,8 @@ if "messages" not in st.session_state:
     st.session_state.messages = []
 
 # -----------------------
-# Upload medical report
+# Process uploaded PDF
 # -----------------------
-
-uploaded_file = st.file_uploader("Upload Medical Report (PDF)", type="pdf")
 
 if uploaded_file:
 
@@ -59,7 +83,7 @@ if uploaded_file:
     st.success("Medical report processed successfully!")
 
 # -----------------------
-# Display chat history
+# Show chat history
 # -----------------------
 
 for msg in st.session_state.messages:
@@ -80,7 +104,7 @@ if query:
         st.markdown(query)
 
     # -----------------------
-    # Decide response type
+    # If report exists → use RAG
     # -----------------------
 
     if st.session_state.vectorstore:
@@ -106,6 +130,10 @@ Medical Report Context:
 Question:
 {query}
 """
+
+    # -----------------------
+    # Otherwise general medical AI
+    # -----------------------
 
     else:
 
