@@ -3,4 +3,7 @@ from langchain_community.tools import DuckDuckGoSearchRun
 search = DuckDuckGoSearchRun()
 
 def web_search(query):
-    return search.run(query)
+    try:
+        return search.run(query)
+    except Exception:
+        return "Web search failed."

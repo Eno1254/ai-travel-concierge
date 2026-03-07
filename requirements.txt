@@ -1,4 +1,4 @@
-streamlit==1.54.0
+streamlit
 groq
 python-dotenv
 
@@ -11,8 +11,7 @@ faiss-cpu
 sentence-transformers
 pypdf
 
-openai
+duckduckgo-search
+requests
 pandas
 numpy
-requests
-duckduckgo-search
