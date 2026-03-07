@@ -1,15 +1,6 @@
-# AI Travel Concierge (RAG Enabled)
+AI Medical Assistant
 
-An AI-powered travel assistant built with:
-- Streamlit
-- Groq LLM
-- LangChain
-- FAISS vector database
-
-## Features
-- Document upload (PDF)
-- Retrieval-Augmented Generation (RAG)
-- AI-based question answering
-
-## Deployment
-Deployed on Streamlit Cloud.
+A RAG-based chatbot that can:
+- Answer general medical questions
+- Analyze uploaded medical reports (PDF)
+- Explain results in simple language
